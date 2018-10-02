@@ -7,7 +7,7 @@ var syncContact = function () {
     var foundContacts, newContact;
     return regeneratorRuntime.wrap(function _callee$(_context) {
       if (serverlessCheckpointer.continuing(arguments)) {
-        ({foundContacts, newContact} = serverlessCheckpointer.restoreContext(_context, arguments));
+        ({foundContacts, newContact} = serverlessCheckpointer.restoreState(_context, arguments));
       }
       while (1) {
         switch (_context.prev = _context.next) {
@@ -18,7 +18,7 @@ var syncContact = function () {
           case 2:
             foundContacts = _context.sent;
 
-            serverlessCheckpointer.updateContexts(arguments, _context, foundContacts, newContact);
+            serverlessCheckpointer.updateState(arguments, _context, foundContacts, newContact);
             serverlessCheckpointer.checkpoint('syncingContact', arguments);
 
             if (!(foundContacts.length === 1)) {
@@ -73,12 +73,12 @@ var eventHandler = function () {
 
     return regeneratorRuntime.wrap(function _callee2$(_context2) {
       if (serverlessCheckpointer.continuing(arguments)) {
-        ({_configurator, trigger, config, ...} = serverlessCheckpointer.restoreContext(_context2, arguments));
+        ({_configurator, trigger, config, ...} = serverlessCheckpointer.restoreState(_context2, arguments));
       }
       while (1) {
         switch (_context2.prev = _context2.next) {
           case 0:
-            serverlessCheckpointer.updateContexts(arguments, _context2);
+            serverlessCheckpointer.updateState(arguments, _context2);
             serverlessCheckpointer.checkpoint('eventReceived', arguments);
             _configurator = configurator(_args2), trigger = _configurator.trigger, config = _configurator.config, done = _configurator.done;
             _iteratorNormalCompletion = true;
@@ -106,10 +106,8 @@ var eventHandler = function () {
             }
 
             _context2.next = 15;
-            if (!serverlessCheckpointer.continuing(arguments)) {
-              serverlessCheckpointer.updateContexts(arguments, _context2, _configurator, trigger, config, done, ...);
-            }
-            return syncContact(myContact, config, serverlessCheckpointer.getContexts(arguments));
+            serverlessCheckpointer.updateState(arguments, _context2, _configurator, trigger, config, done, ...);
+            return syncContact(myContact, config, serverlessCheckpointer.getState(arguments));
 
           case 15:
             _iteratorNormalCompletion = true;

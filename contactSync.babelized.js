@@ -15,11 +15,11 @@ var syncContact = function () {
             foundContacts = _context.sent;
 
             serverlessCheckpointer.updateState(arguments, {
-              _context: _context,
-              myContact: myContact,
-              config: config,
-              foundContacts: foundContacts,
-              newContact: newContact
+              _context,
+              myContact,
+              config,
+              foundContacts,
+              newContact
             })
             $checkpoint('syncingContact');
 
@@ -79,19 +79,19 @@ var eventHandler = function () {
         switch (_context2.prev = _context2.next) {
           case 0:
             serverlessCheckpointer.updateState(arguments, {
-              _context2: _context2,
-              _configurator: _configurator,
-              trigger: trigger,
-              config: config,
-              done: done,
-              _iteratorNormalCompletion: _iteratorNormalCompletion,
-              _didIteratorError: _didIteratorError,
-              _iteratorError: _iteratorError,
-              _iterator: _iterator,
-              _step: _step,
-              event: event,
-              myContact: myContact,
-              _args2: _args2
+              _context2,
+              _configurator,
+              trigger,
+              config,
+              done,
+              _iteratorNormalCompletion,
+              _didIteratorError,
+              _iteratorError,
+              _iterator,
+              _step,
+              event,
+              myContact,
+              _args2
             })
 
             $checkpoint('eventReceived');

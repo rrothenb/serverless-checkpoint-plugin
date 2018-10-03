@@ -6,7 +6,7 @@ function getVars(path) {
 }
 
 function buildStateObject(vars, t) {
-  return t.objectExpression(vars.map(v => t.objectProperty(t.identifier(v), t.identifier(v))));
+  return t.objectExpression(vars.map(v => t.objectProperty(t.identifier(v), t.identifier(v), false, true)));
 }
 
 module.exports = function ({ types: t }) {

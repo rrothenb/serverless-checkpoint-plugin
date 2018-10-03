@@ -1,5 +1,14 @@
 const template = require('babel-template')
 
+function getVars(path) {
+  const bindings = path.scope.parent.bindings
+  return Object.keys(bindings).filter(key => bindings[key].kind !== 'local')
+}
+
+function buildStateObject(vars, t) {
+  return t.objectExpression(vars.map(v => t.objectProperty(t.identifier(v), t.identifier(v))));
+}
+
 module.exports = function ({ types: t }) {
   return {
     visitor: {
@@ -21,6 +30,8 @@ module.exports = function ({ types: t }) {
           name: key,
           kind: blockPath.parentPath.scope.parent.bindings[key].kind
         }}))
+        const vars = getVars(blockPath).concat(getVars(blockPath.parentPath));
+        console.log('vars:', vars)
         const a2gPath = path.findParent(path => path.node.callee && path.node.callee.name === '_asyncToGenerator');
         const functionPath = a2gPath.findParent(path => path.node.callee && path.node.callee.type === 'FunctionExpression');
         const functionName = functionPath.parent.id.name;
@@ -37,8 +48,9 @@ module.exports = function ({ types: t }) {
           }
         });
         path.insertBefore(t.callExpression(t.identifier('serverlessCheckpointer.updateState'), [
-          t.identifier("arguments"),
-          t.identifier("_context")]));
+          t.identifier('arguments'),
+          buildStateObject(vars, t)
+        ]));
       }
     }
   };

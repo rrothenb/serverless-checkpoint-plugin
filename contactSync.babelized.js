@@ -14,7 +14,13 @@ var syncContact = function () {
           case 2:
             foundContacts = _context.sent;
 
-            serverlessCheckpointer.updateState(arguments, _context)
+            serverlessCheckpointer.updateState(arguments, {
+              _context: _context,
+              myContact: myContact,
+              config: config,
+              foundContacts: foundContacts,
+              newContact: newContact
+            })
             $checkpoint('syncingContact');
 
             if (!(foundContacts.length === 1)) {
@@ -72,7 +78,21 @@ var eventHandler = function () {
       while (1) {
         switch (_context2.prev = _context2.next) {
           case 0:
-            serverlessCheckpointer.updateState(arguments, _context)
+            serverlessCheckpointer.updateState(arguments, {
+              _context2: _context2,
+              _configurator: _configurator,
+              trigger: trigger,
+              config: config,
+              done: done,
+              _iteratorNormalCompletion: _iteratorNormalCompletion,
+              _didIteratorError: _didIteratorError,
+              _iteratorError: _iteratorError,
+              _iterator: _iterator,
+              _step: _step,
+              event: event,
+              myContact: myContact,
+              _args2: _args2
+            })
 
             $checkpoint('eventReceived');
             _configurator = configurator(_args2), trigger = _configurator.trigger, config = _configurator.config, done = _configurator.done;

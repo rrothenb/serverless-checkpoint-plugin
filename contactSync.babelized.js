@@ -14,9 +14,7 @@ var syncContact = function () {
           case 2:
             foundContacts = _context.sent;
 
-            // TODO if coming indirectly to this step and not past threshold, write out state to SQS and exit/throw
-            // TODO if coming indirectly to this step and past threshold write out state to DLQ and exit/throw
-            // TODO if coming directly to this step, just keep going
+            serverlessCheckpointer.updateState(arguments, _context)
             $checkpoint('syncingContact');
 
             if (!(foundContacts.length === 1)) {
@@ -74,9 +72,8 @@ var eventHandler = function () {
       while (1) {
         switch (_context2.prev = _context2.next) {
           case 0:
-            // TODO if coming indirectly to this step and not past threshold, write out state to SQS and exit/throw
-            // TODO if coming indirectly to this step and past threshold write out state to DLQ and exit/throw
-            // TODO if coming directly to this step, just keep going
+            serverlessCheckpointer.updateState(arguments, _context)
+
             $checkpoint('eventReceived');
             _configurator = configurator(_args2), trigger = _configurator.trigger, config = _configurator.config, done = _configurator.done;
             _iteratorNormalCompletion = true;

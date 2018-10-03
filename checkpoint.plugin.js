@@ -13,8 +13,14 @@ module.exports = function ({ types: t }) {
           'leading',
           ' TODO need to recognize when the context is being passed in and use it and also set the variables',
           true)
-        console.log('scope:', Object.keys(blockPath.scope.parent.bindings))
-        console.log('scope:', Object.keys(blockPath.parentPath.scope.parent.bindings))
+        console.log('scope:', Object.keys(blockPath.scope.parent.bindings).map(key => {return {
+          name: key,
+          kind: blockPath.scope.parent.bindings[key].kind
+        }}))
+        console.log('scope:', Object.keys(blockPath.parentPath.scope.parent.bindings).map(key => {return {
+          name: key,
+          kind: blockPath.parentPath.scope.parent.bindings[key].kind
+        }}))
         const a2gPath = path.findParent(path => path.node.callee && path.node.callee.name === '_asyncToGenerator');
         const functionPath = a2gPath.findParent(path => path.node.callee && path.node.callee.type === 'FunctionExpression');
         const functionName = functionPath.parent.id.name;
@@ -30,18 +36,9 @@ module.exports = function ({ types: t }) {
             console.log('functionPath.parent.id.name:', functionPath.parent.id.name)
           }
         });
-        path.addComment(
-          'leading',
-          ' TODO if coming indirectly to this step and not past threshold, write out state to SQS and exit/throw',
-          true)
-        path.addComment(
-          'leading',
-          ' TODO if coming indirectly to this step and past threshold write out state to DLQ and exit/throw',
-          true)
-        path.addComment(
-          'leading',
-          ' TODO if coming directly to this step, just keep going',
-          true)
+        path.insertBefore(t.callExpression(t.identifier('serverlessCheckpointer.updateState'), [
+          t.identifier("arguments"),
+          t.identifier("_context")]));
       }
     }
   };

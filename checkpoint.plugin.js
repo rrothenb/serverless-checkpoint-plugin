@@ -47,6 +47,8 @@ module.exports = function ({ types: t }) {
             console.log('functionPath.parent.id.name:', functionPath.parent.id.name)
           }
         });
+        path.node.arguments.push(t.identifier('arguments'))
+        path.node.callee.name = 'serverlessCheckpointer.checkpoint';
         path.insertBefore(t.callExpression(t.identifier('serverlessCheckpointer.updateState'), [
           t.identifier('arguments'),
           buildStateObject(vars, t)

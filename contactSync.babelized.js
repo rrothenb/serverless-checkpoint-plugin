@@ -21,7 +21,7 @@ var syncContact = function () {
               foundContacts,
               newContact
             })
-            $checkpoint('syncingContact');
+            serverlessCheckpointer.checkpoint('syncingContact', arguments);
 
             if (!(foundContacts.length === 1)) {
               _context.next = 10;
@@ -94,7 +94,7 @@ var eventHandler = function () {
               _args2
             })
 
-            $checkpoint('eventReceived');
+            serverlessCheckpointer.checkpoint('eventReceived', arguments);
             _configurator = configurator(_args2), trigger = _configurator.trigger, config = _configurator.config, done = _configurator.done;
             _iteratorNormalCompletion = true;
             _didIteratorError = false;

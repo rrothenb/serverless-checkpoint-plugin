@@ -22,14 +22,6 @@ module.exports = function ({ types: t }) {
           'leading',
           ' TODO need to recognize when the context is being passed in and use it and also set the variables',
           true)
-        console.log('scope:', Object.keys(blockPath.scope.parent.bindings).map(key => {return {
-          name: key,
-          kind: blockPath.scope.parent.bindings[key].kind
-        }}))
-        console.log('scope:', Object.keys(blockPath.parentPath.scope.parent.bindings).map(key => {return {
-          name: key,
-          kind: blockPath.parentPath.scope.parent.bindings[key].kind
-        }}))
         const vars = getVars(blockPath).concat(getVars(blockPath.parentPath));
         console.log('vars:', vars)
         const a2gPath = path.findParent(path => path.node.callee && path.node.callee.name === '_asyncToGenerator');
@@ -53,6 +45,15 @@ module.exports = function ({ types: t }) {
           t.identifier('arguments'),
           buildStateObject(vars, t)
         ]));
+      },
+      Program(path, state) {
+        console.log('Program - path.node.body:', path.node.body)
+      },
+      AssignmentExpression(path, state) {
+        if (path.node.right && path.node.right.name === 'eventHandler') {
+          console.log('AssignmentExpression - path.node.right:', path.node.right)
+          console.log('AssignmentExpression - state.opts:', state.opts)
+        }
       }
     }
   };

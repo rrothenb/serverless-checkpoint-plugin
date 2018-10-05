@@ -48,6 +48,8 @@ module.exports = function ({ types: t }) {
       },
       Program(path, state) {
         console.log('Program - path.node.body:', path.node.body)
+        path.node.body.unshift(
+          template("const SC = require('./serverlessCheckpointer')")({SC: t.identifier('serverlessCheckpointer')}))
       },
       AssignmentExpression(path, state) {
         if (path.node.right && path.node.right.name === 'eventHandler') {

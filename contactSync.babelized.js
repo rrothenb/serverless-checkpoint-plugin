@@ -1,5 +1,7 @@
 'use strict';
 
+const serverlessCheckpointer = require('./serverlessCheckpointer');
+
 var syncContact = function () {
   var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(myContact, config) {
     var foundContacts, newContact;

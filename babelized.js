@@ -1,14 +1,21 @@
 'use strict';
 
-const serverlessCheckpointer = require('serverlessCheckpointer');
+const serverlessCheckpointer = require('./serverlessCheckpointer');
 
 var syncContact = function () {
   var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(myContact, config) {
     var foundContacts, newContact;
     return regeneratorRuntime.wrap(function _callee$(_context) {
       if (serverlessCheckpointer.continuing(arguments)) {
-        ({foundContacts, newContact} = serverlessCheckpointer.restoreState(_context, arguments));
+        ({
+          _context,
+          myContact,
+          config,
+          foundContacts,
+          newContact
+        } = serverlessCheckpointer.restoreState(_context, arguments));
       }
+
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
@@ -18,7 +25,13 @@ var syncContact = function () {
           case 2:
             foundContacts = _context.sent;
 
-            serverlessCheckpointer.updateState(arguments, _context, foundContacts, newContact);
+            serverlessCheckpointer.updateState(arguments, {
+              _context,
+              myContact,
+              config,
+              foundContacts,
+              newContact
+            })
             serverlessCheckpointer.checkpoint('syncingContact', arguments);
 
             if (!(foundContacts.length === 1)) {
@@ -73,12 +86,42 @@ var eventHandler = function () {
 
     return regeneratorRuntime.wrap(function _callee2$(_context2) {
       if (serverlessCheckpointer.continuing(arguments)) {
-        ({_configurator, trigger, config, ...} = serverlessCheckpointer.restoreState(_context2, arguments));
+        ({
+          _context2,
+          _configurator,
+          trigger,
+          config,
+          done,
+          _iteratorNormalCompletion,
+          _didIteratorError,
+          _iteratorError,
+          _iterator,
+          _step,
+          event,
+          myContact,
+          _args2
+        } = serverlessCheckpointer.restoreState(_context2, arguments));
       }
+
       while (1) {
         switch (_context2.prev = _context2.next) {
           case 0:
-            serverlessCheckpointer.updateState(arguments, _context2);
+            serverlessCheckpointer.updateState(arguments, {
+              _context2,
+              _configurator,
+              trigger,
+              config,
+              done,
+              _iteratorNormalCompletion,
+              _didIteratorError,
+              _iteratorError,
+              _iterator,
+              _step,
+              event,
+              myContact,
+              _args2
+            })
+
             serverlessCheckpointer.checkpoint('eventReceived', arguments);
             _configurator = configurator(_args2), trigger = _configurator.trigger, config = _configurator.config, done = _configurator.done;
             _iteratorNormalCompletion = true;
@@ -108,6 +151,7 @@ var eventHandler = function () {
             _context2.next = 15;
             serverlessCheckpointer.updateState(arguments, _context2, _configurator, trigger, config, done, ...);
             return syncContact(myContact, config, serverlessCheckpointer.getState(arguments));
+            // TODO I may have to remove the state here.  It may be easier to just know where you are though
 
           case 15:
             _iteratorNormalCompletion = true;

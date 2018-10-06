@@ -6,7 +6,16 @@ var syncContact = function () {
   var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(myContact, config) {
     var foundContacts, newContact;
     return regeneratorRuntime.wrap(function _callee$(_context) {
-      // TODO need to recognize when the context is being passed in and use it and also set the variables
+      if (serverlessCheckpointer.continuing(arguments)) {
+        ({
+          _context,
+          myContact,
+          config,
+          foundContacts,
+          newContact
+        } = serverlessCheckpointer.restoreState(_context, arguments));
+      }
+
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
@@ -76,7 +85,24 @@ var eventHandler = function () {
         _args2 = arguments;
 
     return regeneratorRuntime.wrap(function _callee2$(_context2) {
-      // TODO need to recognize when the context is being passed in and use it and also set the variables
+      if (serverlessCheckpointer.continuing(arguments)) {
+        ({
+          _context2,
+          _configurator,
+          trigger,
+          config,
+          done,
+          _iteratorNormalCompletion,
+          _didIteratorError,
+          _iteratorError,
+          _iterator,
+          _step,
+          event,
+          myContact,
+          _args2
+        } = serverlessCheckpointer.restoreState(_context2, arguments));
+      }
+
       while (1) {
         switch (_context2.prev = _context2.next) {
           case 0:

@@ -17,19 +17,17 @@ function processCall(path, functionName, t) {
   const blockPath = path.findParent(path => path.parentPath.node.type === 'BlockStatement' && path.parentPath.parent.type === 'FunctionExpression');
   const vars = getVars(blockPath).concat(getVars(blockPath.parentPath));
   if (!insertedUpdates.includes(path.node.start)) {
-    // TODO replace 'arguments' by correct variable
-    path.node.arguments.push(t.callExpression(t.identifier('serverlessCheckpointer.getState'), [t.identifier('arguments')]));
+    path.node.arguments.push(t.identifier('serverlessCheckpointerState'));
     path.insertBefore(t.callExpression(t.identifier('serverlessCheckpointer.updateState'), [
-      t.identifier('arguments'),
+      t.identifier('serverlessCheckpointerState'),
       t.objectExpression(buildStateList(vars, t))
     ]));
     insertedUpdates.push(path.node.start)
   }
   if (!insertedRestores.includes(blockPath.node.start)) {
-    // TODO replace 'arguments' by correct variable
     const stateRestorer = template(`
-            if (serverlessCheckpointer.continuing(arguments)) {
-              (STATE = serverlessCheckpointer.restoreState(CONTEXT, arguments));
+            if (serverlessCheckpointer.continuing(serverlessCheckpointerState)) {
+              (STATE = serverlessCheckpointer.restoreState(CONTEXT, serverlessCheckpointerState));
             }
         `,)( {
       STATE: t.objectPattern(buildStateList(vars, t)),
@@ -81,6 +79,14 @@ module.exports = function ({ types: t }) {
       Program(path, state) {
         path.node.body.unshift(
           template("const SC = require('./serverlessCheckpointer')")({SC: t.identifier('serverlessCheckpointer')}));
+      },
+      MemberExpression(path, state) {
+        if (path.node.object.name !== 'regeneratorRuntime' || path.node.property.name !== 'wrap') {
+          return;
+        }
+        path.parentPath.parentPath.parentPath.node.body.unshift(
+          template("const serverlessCheckpointerState = serverlessCheckpointer.getState(ARGS)")({ARGS: t.identifier('arguments')})
+        )
       }
     }
   };

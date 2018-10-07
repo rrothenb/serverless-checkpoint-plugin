@@ -4,9 +4,11 @@ const serverlessCheckpointer = require('./serverlessCheckpointer');
 
 var syncContact = function () {
   var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(myContact, config, total) {
+    const serverlessCheckpointerState = serverlessCheckpointer.getState(arguments);
+
     var foundContacts, newContact;
     return regeneratorRuntime.wrap(function _callee$(_context) {
-      if (serverlessCheckpointer.continuing(arguments)) {
+      if (serverlessCheckpointer.continuing(serverlessCheckpointerState)) {
         ({
           _context,
           myContact,
@@ -14,7 +16,7 @@ var syncContact = function () {
           total,
           foundContacts,
           newContact
-        } = serverlessCheckpointer.restoreState(_context, arguments));
+        } = serverlessCheckpointer.restoreState(_context, serverlessCheckpointerState));
       }
 
       while (1) {
@@ -26,7 +28,7 @@ var syncContact = function () {
           case 2:
             foundContacts = _context.sent;
 
-            serverlessCheckpointer.updateState(arguments, {
+            serverlessCheckpointer.updateState(serverlessCheckpointerState, {
               _context,
               myContact,
               config,
@@ -34,7 +36,7 @@ var syncContact = function () {
               foundContacts,
               newContact
             })
-            serverlessCheckpointer.checkpoint('syncingContact', total, serverlessCheckpointer.getState(arguments));
+            serverlessCheckpointer.checkpoint('syncingContact', total, serverlessCheckpointerState);
 
             if (!(foundContacts.length === 1)) {
               _context.next = 10;
@@ -73,6 +75,8 @@ var syncContact = function () {
 
 var eventHandler = function () {
   var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+    const serverlessCheckpointerState = serverlessCheckpointer.getState(arguments);
+
     var _configurator,
         trigger,
         config,
@@ -87,7 +91,7 @@ var eventHandler = function () {
         _args2 = arguments;
 
     return regeneratorRuntime.wrap(function _callee2$(_context2) {
-      if (serverlessCheckpointer.continuing(arguments)) {
+      if (serverlessCheckpointer.continuing(serverlessCheckpointerState)) {
         ({
           _context2,
           _configurator,
@@ -102,7 +106,7 @@ var eventHandler = function () {
           event,
           myContact,
           _args2
-        } = serverlessCheckpointer.restoreState(_context2, arguments));
+        } = serverlessCheckpointer.restoreState(_context2, serverlessCheckpointerState));
       }
 
       while (1) {
@@ -110,7 +114,7 @@ var eventHandler = function () {
           case 0:
             _configurator = configurator(_args2), trigger = _configurator.trigger, config = _configurator.config, done = _configurator.done;
 
-            serverlessCheckpointer.updateState(arguments, {
+            serverlessCheckpointer.updateState(serverlessCheckpointerState, {
               _context2,
               _configurator,
               trigger,
@@ -125,7 +129,7 @@ var eventHandler = function () {
               myContact,
               _args2
             })
-            serverlessCheckpointer.checkpoint('eventReceived', serverlessCheckpointer.getState(arguments));
+            serverlessCheckpointer.checkpoint('eventReceived', serverlessCheckpointerState);
             _iteratorNormalCompletion = true;
             _didIteratorError = false;
             _iteratorError = undefined;
@@ -151,7 +155,7 @@ var eventHandler = function () {
             }
 
             _context2.next = 15;
-            return serverlessCheckpointer.updateState(arguments, {
+            return serverlessCheckpointer.updateState(serverlessCheckpointerState, {
               _context2,
               _configurator,
               trigger,
@@ -165,7 +169,7 @@ var eventHandler = function () {
               event,
               myContact,
               _args2
-            }), syncContact(myContact, config, trigger.events.length, serverlessCheckpointer.getState(arguments));
+            }), syncContact(myContact, config, trigger.events.length, serverlessCheckpointerState);
 
           case 15:
             _iteratorNormalCompletion = true;

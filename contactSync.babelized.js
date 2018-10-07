@@ -3,7 +3,7 @@
 const serverlessCheckpointer = require('./serverlessCheckpointer');
 
 var syncContact = function () {
-  var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(myContact, config) {
+  var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(myContact, config, total) {
     var foundContacts, newContact;
     return regeneratorRuntime.wrap(function _callee$(_context) {
       if (serverlessCheckpointer.continuing(arguments)) {
@@ -11,6 +11,7 @@ var syncContact = function () {
           _context,
           myContact,
           config,
+          total,
           foundContacts,
           newContact
         } = serverlessCheckpointer.restoreState(_context, arguments));
@@ -29,10 +30,11 @@ var syncContact = function () {
               _context,
               myContact,
               config,
+              total,
               foundContacts,
               newContact
             })
-            serverlessCheckpointer.checkpoint('syncingContact', serverlessCheckpointer.getState(arguments));
+            serverlessCheckpointer.checkpoint('syncingContact', total, serverlessCheckpointer.getState(arguments));
 
             if (!(foundContacts.length === 1)) {
               _context.next = 10;
@@ -64,7 +66,7 @@ var syncContact = function () {
     }, _callee, this);
   }));
 
-  return function syncContact(_x, _x2) {
+  return function syncContact(_x, _x2, _x3) {
     return _ref.apply(this, arguments);
   };
 }();
@@ -163,7 +165,7 @@ var eventHandler = function () {
               event,
               myContact,
               _args2
-            }), syncContact(myContact, config, serverlessCheckpointer.getState(arguments));
+            }), syncContact(myContact, config, trigger.events.length, serverlessCheckpointer.getState(arguments));
 
           case 15:
             _iteratorNormalCompletion = true;

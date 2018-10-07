@@ -1,7 +1,7 @@
 'use strict';
 
 var syncContact = function () {
-  var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(myContact, config) {
+  var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(myContact, config, total) {
     var foundContacts, newContact;
     return regeneratorRuntime.wrap(function _callee$(_context) {
       while (1) {
@@ -13,7 +13,7 @@ var syncContact = function () {
           case 2:
             foundContacts = _context.sent;
 
-            $checkpoint('syncingContact');
+            $checkpoint('syncingContact', total);
 
             if (!(foundContacts.length === 1)) {
               _context.next = 10;
@@ -45,7 +45,7 @@ var syncContact = function () {
     }, _callee, this);
   }));
 
-  return function syncContact(_x, _x2) {
+  return function syncContact(_x, _x2, _x3) {
     return _ref.apply(this, arguments);
   };
 }();
@@ -96,7 +96,7 @@ var eventHandler = function () {
             }
 
             _context2.next = 15;
-            return syncContact(myContact, config);
+            return syncContact(myContact, config, trigger.events.length);
 
           case 15:
             _iteratorNormalCompletion = true;

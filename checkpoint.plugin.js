@@ -17,6 +17,7 @@ function processCall(path, functionName, t) {
   const blockPath = path.findParent(path => path.parentPath.node.type === 'BlockStatement' && path.parentPath.parent.type === 'FunctionExpression');
   const vars = getVars(blockPath).concat(getVars(blockPath.parentPath));
   if (!insertedUpdates.includes(path.node.start)) {
+    // TODO replace 'arguments' by correct variable
     path.node.arguments.push(t.callExpression(t.identifier('serverlessCheckpointer.getState'), [t.identifier('arguments')]));
     path.insertBefore(t.callExpression(t.identifier('serverlessCheckpointer.updateState'), [
       t.identifier('arguments'),
@@ -25,6 +26,7 @@ function processCall(path, functionName, t) {
     insertedUpdates.push(path.node.start)
   }
   if (!insertedRestores.includes(blockPath.node.start)) {
+    // TODO replace 'arguments' by correct variable
     const stateRestorer = template(`
             if (serverlessCheckpointer.continuing(arguments)) {
               (STATE = serverlessCheckpointer.restoreState(CONTEXT, arguments));

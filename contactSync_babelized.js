@@ -108,6 +108,8 @@ var eventHandler = function () {
       while (1) {
         switch (_context2.prev = _context2.next) {
           case 0:
+            _configurator = configurator(_args2), trigger = _configurator.trigger, config = _configurator.config, done = _configurator.done;
+
             serverlessCheckpointer.updateState(arguments, {
               _context2,
               _configurator,
@@ -123,9 +125,7 @@ var eventHandler = function () {
               myContact,
               _args2
             })
-
             serverlessCheckpointer.checkpoint('eventReceived', serverlessCheckpointer.getState(arguments));
-            _configurator = configurator(_args2), trigger = _configurator.trigger, config = _configurator.config, done = _configurator.done;
             _iteratorNormalCompletion = true;
             _didIteratorError = false;
             _iteratorError = undefined;

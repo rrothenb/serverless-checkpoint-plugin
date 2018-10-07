@@ -69,8 +69,9 @@ var eventHandler = function () {
       while (1) {
         switch (_context2.prev = _context2.next) {
           case 0:
-            $checkpoint('eventReceived');
             _configurator = configurator(_args2), trigger = _configurator.trigger, config = _configurator.config, done = _configurator.done;
+
+            $checkpoint('eventReceived');
             _iteratorNormalCompletion = true;
             _didIteratorError = false;
             _iteratorError = undefined;

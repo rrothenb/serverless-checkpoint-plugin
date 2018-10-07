@@ -245,4 +245,4 @@ function _asyncToGenerator(fn) {
 var _require = require('./configurator'),
     configurator = _require.configurator;
 
-module.exports.eventHandler = eventHandler;
+module.exports.eventHandler = serverlessCheckpointer.wrapper(eventHandler);

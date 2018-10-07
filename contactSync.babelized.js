@@ -32,7 +32,7 @@ var syncContact = function () {
               foundContacts,
               newContact
             })
-            serverlessCheckpointer.checkpoint('syncingContact', arguments);
+            serverlessCheckpointer.checkpoint('syncingContact', serverlessCheckpointer.getState(arguments));
 
             if (!(foundContacts.length === 1)) {
               _context.next = 10;
@@ -122,7 +122,7 @@ var eventHandler = function () {
               _args2
             })
 
-            serverlessCheckpointer.checkpoint('eventReceived', arguments);
+            serverlessCheckpointer.checkpoint('eventReceived', serverlessCheckpointer.getState(arguments));
             _configurator = configurator(_args2), trigger = _configurator.trigger, config = _configurator.config, done = _configurator.done;
             _iteratorNormalCompletion = true;
             _didIteratorError = false;
@@ -149,7 +149,21 @@ var eventHandler = function () {
             }
 
             _context2.next = 15;
-            return syncContact(myContact, config);
+            return serverlessCheckpointer.updateState(arguments, {
+              _context2,
+              _configurator,
+              trigger,
+              config,
+              done,
+              _iteratorNormalCompletion,
+              _didIteratorError,
+              _iteratorError,
+              _iterator,
+              _step,
+              event,
+              myContact,
+              _args2
+            }), syncContact(myContact, config, serverlessCheckpointer.getState(arguments));
 
           case 15:
             _iteratorNormalCompletion = true;

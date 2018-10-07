@@ -1,12 +1,44 @@
 const template = require('babel-template')
 
+const insertedRestores = []
+const insertedUpdates = []
 function getVars(path) {
   const bindings = path.scope.parent.bindings
   return Object.keys(bindings).filter(key => bindings[key].kind !== 'local')
 }
 
-function buildStateObject(vars, t) {
-  return t.objectExpression(vars.map(v => t.objectProperty(t.identifier(v), t.identifier(v), false, true)));
+function buildStateList(vars, t) {
+  return vars.map(v => t.objectProperty(t.identifier(v), t.identifier(v), false, true));
+}
+
+function processCall(path, functionName, t) {
+  console.log('calling processCall', functionName, path.node.start)
+  const blockPath = path.findParent(path => path.parentPath.node.type === 'BlockStatement' && path.parentPath.parent.type === 'FunctionExpression')
+  const vars = getVars(blockPath).concat(getVars(blockPath.parentPath));
+  if (!insertedUpdates.includes(path.node.start)) {
+    path.node.arguments.push(t.callExpression(t.identifier('serverlessCheckpointer.getState'), [t.identifier('arguments')]))
+    path.insertBefore(t.callExpression(t.identifier('serverlessCheckpointer.updateState'), [
+      t.identifier('arguments'),
+      t.objectExpression(buildStateList(vars, t))
+    ]));
+    insertedUpdates.push(path.node.start)
+  }
+  console.log('vars:', vars)
+  if (!insertedRestores.includes(blockPath.node.start)) {
+    const stateRestorer = template(`
+            if (serverlessCheckpointer.continuing(arguments)) {
+              (STATE = serverlessCheckpointer.restoreState(CONTEXT, arguments));
+            }
+        `,)( {
+      STATE: t.objectPattern(buildStateList(vars, t)),
+      CONTEXT: t.identifier(getVars(blockPath)[0])
+    })
+    console.log('blockPath.node.start', blockPath.node.start)
+    blockPath.insertBefore(stateRestorer)
+    insertedRestores.push(blockPath.node.start)
+  }
+  const a2gPath = path.findParent(path => path.node.callee && path.node.callee.name === '_asyncToGenerator');
+  return a2gPath.findParent(path => path.node.callee && path.node.callee.type === 'FunctionExpression');
 }
 
 module.exports = function ({ types: t }) {
@@ -16,47 +48,29 @@ module.exports = function ({ types: t }) {
         if (path.node.callee.name !== '$checkpoint' || path.parentPath.parent.type !== 'SwitchCase') {
           return;
         }
-        const blockPath = path.findParent(path => path.parentPath.node.type === 'BlockStatement' && path.parentPath.parent.type === 'FunctionExpression')
-        const vars = getVars(blockPath).concat(getVars(blockPath.parentPath));
-        path.node.arguments.push(t.identifier('arguments'))
         path.node.callee.name = 'serverlessCheckpointer.checkpoint';
-        path.insertBefore(t.callExpression(t.identifier('serverlessCheckpointer.updateState'), [
-          t.identifier('arguments'),
-          buildStateObject(vars, t)
-        ]));
-        console.log('vars:', vars)
-        const stateRestorer = template(`
-            if (serverlessCheckpointer.continuing(arguments)) {
-              (STATE = serverlessCheckpointer.restoreState(CONTEXT, arguments));
-            }
-        `,)( {
-          STATE: t.objectPattern(vars.map(v => t.objectProperty(t.identifier(v), t.identifier(v), false, true))),
-          CONTEXT: t.identifier(getVars(blockPath)[0])
-        })
-        blockPath.insertBefore(stateRestorer)
-        const a2gPath = path.findParent(path => path.node.callee && path.node.callee.name === '_asyncToGenerator');
-        const functionPath = a2gPath.findParent(path => path.node.callee && path.node.callee.type === 'FunctionExpression');
-        const functionName = functionPath.parent.id.name;
+        const functionPath = processCall(path, '$checkpoint', t)
+        let functionName = functionPath.parent.id.name;
         console.log('functionName:', functionName)
         const topPath = functionPath.findParent(path => path.node.type === 'Program')
-        // TODO this goes in a while loop as long as functionName is set
-        topPath.traverse({
-          CallExpression(path, state) {
-            if (path.node.callee.name !== functionName || path.parentPath.parent.type !== 'SwitchCase') {
-              return;
+        let done = false;
+        while (!done) {
+          done = true;
+          topPath.traverse({
+            CallExpression(path, state) {
+              if (path.node.callee.name !== functionName || path.parentPath.parent.type !== 'SwitchCase') {
+                return;
+              }
+              const functionPath = processCall(path, functionName, t)
+              functionName = functionPath.parent.id.name;
+              console.log('functionName:', functionName)
+              // TODO If no functionName, then must be top and can wrap it
+              done = false;
             }
-            // TODO here is where we add the update state and stateRestorer (and probably avoid duplication)
-            // TODO need to factor out common code between here and above
-            const a2gPath = path.findParent(path => path.node.callee && path.node.callee.name === '_asyncToGenerator');
-            const functionPath = a2gPath.findParent(path => path.node.callee && path.node.callee.type === 'FunctionExpression');
-            console.log('functionPath.parent.id.name:', functionPath.parent.id.name)
-            // TODO here is where we know that we're being called by eventHandler
-            // TODO If no functionPath.parent.id.name, then functionName must be top and can wrap it
-          }
-        });
+          });
+        }
       },
       Program(path, state) {
-        console.log('Program - path.node.body:', path.node.body)
         path.node.body.unshift(
           template("const SC = require('./serverlessCheckpointer')")({SC: t.identifier('serverlessCheckpointer')}))
       },

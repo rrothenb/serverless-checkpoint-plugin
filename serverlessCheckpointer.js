@@ -1,14 +1,15 @@
 module.exports.wrapper = function(handler) {
   console.log('wrapping')
+  let globalScope = {continuing: false}
   return function() {
     console.log('wrapper', arguments)
-    return handler(...arguments, {continuing: false})
+    return handler(...arguments, {globalScope})
   }
 }
 
 module.exports.continuing = function(state) {
   console.log('continuing', state)
-  return state.continuing;
+  return state.globalScope.continuing;
 }
 
 module.exports.buildState = function(state, context) {

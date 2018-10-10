@@ -1,9 +1,26 @@
+const pako = require('pako');
+
 module.exports.wrapper = function(handler) {
   console.log('wrapping')
-  let globalScope = {continuing: false}
-  return function() {
+  let globalScope = {continuing: false, local: true}
+  return async function () {
     console.log('wrapper', arguments)
-    return handler(...arguments, {globalScope})
+    console.log('calling', handler)
+    let done = false;
+    while (!done) {
+      try {
+        return await handler(...arguments, {globalScope, stack: []})
+      } catch (e) {
+        console.log('caught', e)
+        if (e.type === 'checkpoint') {
+          console.log('closing time')
+          done = !globalScope.local;
+          globalScope.continuing = true;
+        } else {
+          throw e;
+        }
+      }
+    }
   }
 }
 
@@ -13,14 +30,21 @@ module.exports.continuing = function(state) {
 }
 
 module.exports.buildState = function(state, context) {
-  console.log('buildState', state, JSON.stringify(context, null, 4))
-  return state
+  console.log('buildState', state, context)
+  return {globalScope: state.globalScope, stack: state.stack.concat([context])}
 }
 
 module.exports.checkpoint = function() {
   console.log('checkpoint', arguments)
   const state = module.exports.getState(arguments)
-  throw {type: 'checkpoint', state: state}
+  const serializedState = JSON.stringify(state);
+  const compressedState = pako.deflate(serializedState, {to: 'string'})
+  console.log('state size:', serializedState.length, 'compressed state size:', compressedState.length)
+  if (state.globalScope.continuing) {
+    state.globalScope.continuing = false;
+  } else {
+    throw {type: 'checkpoint', state: compressedState}
+  }
 }
 
 
@@ -31,3 +55,6 @@ module.exports.getState = function (args) {
 }
 
 
+module.exports.restoreState = function(context, state) {
+  console.log('restoreState', context, state)
+}

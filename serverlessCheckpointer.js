@@ -7,15 +7,19 @@ module.exports.wrapper = function(handler) {
     console.log('wrapper', arguments)
     console.log('calling', handler)
     let done = false;
+    let stack = []
     while (!done) {
       try {
-        return await handler(...arguments, {globalScope, stack: []})
+        return await handler(...arguments, {globalScope, stack: stack})
       } catch (e) {
         console.log('caught', e)
         if (e.type === 'checkpoint') {
           console.log('closing time')
           done = !globalScope.local;
           globalScope.continuing = true;
+          const serializedState = pako.inflate(e.state, {to: 'string'})
+          stack = JSON.parse(serializedState).stack
+          console.log('stack', stack)
         } else {
           throw e;
         }
@@ -57,4 +61,6 @@ module.exports.getState = function (args) {
 
 module.exports.restoreState = function(context, state) {
   console.log('restoreState', context, state)
+  console.log(state.stack[0])
+  return state.stack[0];
 }

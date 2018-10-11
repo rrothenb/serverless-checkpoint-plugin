@@ -19,7 +19,6 @@ module.exports.wrapper = function(handler) {
           globalScope.continuing = true;
           const serializedState = pako.inflate(e.state, {to: 'string'})
           stack = JSON.parse(serializedState).stack
-          console.log('stack', stack)
         } else {
           throw e;
         }
@@ -29,13 +28,17 @@ module.exports.wrapper = function(handler) {
 }
 
 module.exports.continuing = function(state) {
-  console.log('continuing', state)
+  console.log('continuing', state.globalScope, 'stack length:', state.stack.length)
   return state.globalScope.continuing;
 }
 
 module.exports.buildState = function(state, context) {
-  console.log('buildState', state, context)
-  return {globalScope: state.globalScope, stack: state.stack.concat([context])}
+  console.log('buildState', state.globalScope, 'stack length:', state.stack.length, context)
+  if (state.globalScope.continuing) {
+    return state
+  } else {
+    return {globalScope: state.globalScope, stack: state.stack.concat([context])}
+  }
 }
 
 module.exports.checkpoint = function() {
@@ -54,13 +57,12 @@ module.exports.checkpoint = function() {
 
 module.exports.getState = function (args) {
   const state = args[args.length-1]
-  console.log('getState', state)
+  console.log('getState', state.globalScope, 'stack length:', state.stack.length)
   return state
 }
 
 
 module.exports.restoreState = function(context, state) {
-  console.log('restoreState', context, state)
-  console.log(state.stack[0])
+  console.log('restoreState', context, state.globalScope, 'stack length:', state.stack.length)
   return state.stack[0];
 }

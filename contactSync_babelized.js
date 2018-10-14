@@ -16,7 +16,7 @@ var syncContact = function () {
           total,
           foundContacts,
           newContact
-        } = serverlessCheckpointer.restoreState(_context, serverlessCheckpointerState));
+        } = serverlessCheckpointer.restoreState(_context, '_context', 'syncContact', serverlessCheckpointerState));
       }
 
       while (1) {
@@ -28,7 +28,7 @@ var syncContact = function () {
           case 2:
             foundContacts = _context.sent;
 
-            serverlessCheckpointer.checkpoint('syncingContact', total, serverlessCheckpointer.buildState(serverlessCheckpointerState, {
+            serverlessCheckpointer.checkpoint('syncingContact', total, serverlessCheckpointer.buildState(serverlessCheckpointerState, 'syncContact', {
               _context,
               myContact,
               config,
@@ -105,7 +105,7 @@ var eventHandler = function () {
           event,
           myContact,
           _args2
-        } = serverlessCheckpointer.restoreState(_context2, serverlessCheckpointerState));
+        } = serverlessCheckpointer.restoreState(_context2, '_context2', 'eventHandler', serverlessCheckpointerState));
       }
 
       while (1) {
@@ -113,7 +113,7 @@ var eventHandler = function () {
           case 0:
             _configurator = configurator(_args2), trigger = _configurator.trigger, config = _configurator.config, done = _configurator.done;
 
-            serverlessCheckpointer.checkpoint('eventReceived', serverlessCheckpointer.buildState(serverlessCheckpointerState, {
+            serverlessCheckpointer.checkpoint('eventReceived', serverlessCheckpointer.buildState(serverlessCheckpointerState, 'eventHandler', {
               _context2,
               _configurator,
               trigger,
@@ -153,7 +153,7 @@ var eventHandler = function () {
             }
 
             _context2.next = 15;
-            return syncContact(myContact, config, trigger.events.length, serverlessCheckpointer.buildState(serverlessCheckpointerState, {
+            return syncContact(myContact, config, trigger.events.length, serverlessCheckpointer.buildState(serverlessCheckpointerState, 'eventHandler', {
               _context2,
               _configurator,
               trigger,

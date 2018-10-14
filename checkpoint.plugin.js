@@ -15,28 +15,32 @@ function buildStateList(vars, t) {
 
 function processCall(path, functionName, t) {
   const blockPath = path.findParent(path => path.parentPath.node.type === 'BlockStatement' && path.parentPath.parent.type === 'FunctionExpression');
+  const a2gPath = path.findParent(path => path.node.callee && path.node.callee.name === '_asyncToGenerator');
+  const functionPath = a2gPath.findParent(path => path.node.callee && path.node.callee.type === 'FunctionExpression');
+  const parentFunctionName = functionPath.parent.id.name;
   const vars = getVars(blockPath).concat(getVars(blockPath.parentPath));
   if (!insertedUpdates.includes(path.node.start)) {
     path.node.arguments.push(t.callExpression(t.identifier('serverlessCheckpointer.buildState'), [
       t.identifier('serverlessCheckpointerState'),
+      t.stringLiteral(parentFunctionName),
       t.objectExpression(buildStateList(vars, t))
     ]));
     insertedUpdates.push(path.node.start)
   }
   if (!insertedRestores.includes(blockPath.node.start)) {
+    const contextName = getVars(blockPath)[0];
     const stateRestorer = template(`
             if (serverlessCheckpointer.continuing(serverlessCheckpointerState)) {
-              (STATE = serverlessCheckpointer.restoreState(CONTEXT, serverlessCheckpointerState));
+              (STATE = serverlessCheckpointer.restoreState(CONTEXT, '${contextName}', '${parentFunctionName}', serverlessCheckpointerState));
             }
         `,)( {
       STATE: t.objectPattern(buildStateList(vars, t)),
-      CONTEXT: t.identifier(getVars(blockPath)[0])
+      CONTEXT: t.identifier(contextName)
     });
     blockPath.insertBefore(stateRestorer);
     insertedRestores.push(blockPath.node.start);
   }
-  const a2gPath = path.findParent(path => path.node.callee && path.node.callee.name === '_asyncToGenerator');
-  return a2gPath.findParent(path => path.node.callee && path.node.callee.type === 'FunctionExpression');
+  return functionPath;
 }
 
 module.exports = function ({ types: t }) {

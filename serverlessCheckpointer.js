@@ -33,7 +33,6 @@ module.exports.continuing = function(state) {
 
 module.exports.buildState = function(state, functionName, context) {
   if (state.globalScope.continuing) {
-    delete state.stack[functionName]
     return state
   } else {
     return {globalScope: state.globalScope, stack: Object.assign({[functionName]: context}, state.stack)}
@@ -46,10 +45,7 @@ module.exports.checkpoint = function() {
   const compressedState = pako.deflate(serializedState, {to: 'string'})
   if (state.globalScope.continuing) {
     console.log('checkpoint', arguments[0], 'continuing...')
-    if (Object.keys(state.stack).length === 0) {
-      console.log('checkpoint continuation completed')
-      state.globalScope.continuing = false;
-    }
+    state.globalScope.continuing = false;
   } else {
     console.log('checkpoint', arguments[0], 'reached')
     throw {type: 'checkpoint', state: compressedState}
@@ -62,10 +58,12 @@ module.exports.getState = function (args) {
   return state
 }
 
+// TODO it's more complicated.  Can't save/restore functions
 module.exports.restoreState = function(context, contextName, functionName, state) {
   console.log('restoring state for', functionName)
-  context.next = state.stack[functionName][contextName].next;
+  context.next = state.stack[functionName][contextName].prev;
   context.prev = state.stack[functionName][contextName].prev;
+  context.sent = state.stack[functionName][contextName].sent;
   state.stack[functionName][contextName] = context;
   return state.stack[functionName];
 }

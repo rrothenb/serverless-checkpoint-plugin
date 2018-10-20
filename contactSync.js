@@ -13,15 +13,15 @@ async function syncContact(myContact, config, total) {
 }
 
 async function eventHandler() {
-  const {trigger, config, done} = configurator(arguments);
+  const {trigger, config} = configurator(arguments);
   $checkpoint('eventReceived');
-  for (let event of trigger.events) {
+  for (let i = 0; i < trigger.events.length; i++) {
+    let event = trigger.events[i];
     const myContact = await config.sfdc.getMyContactById(event.objectId).run();
     if (myContact.Email) {
       await syncContact(myContact, config, trigger.events.length);
     }
   }
-  done();
 }
 
 module.exports.eventHandler = eventHandler;

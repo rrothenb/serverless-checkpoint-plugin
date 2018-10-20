@@ -6,7 +6,10 @@
   "dependencies": {
     "babel-cli": "^6.26.0",
     "babel-preset-env": "^1.7.0",
-    "pako": "^1.0.6"
+    "flatted": "^1.0.3",
+    "json_prototype": "^1.0.1",
+    "pako": "^1.0.6",
+    "serialize-javascript": "^1.5.0"
   },
   "devDependencies": {
     "serverless-cloud-elements-plugin": "^0.1.3"

@@ -1,4 +1,14 @@
 const pako = require('pako');
+const {parse, stringify} = require('flatted/cjs');
+
+function reviver(key, value) {
+  if (typeof value === 'string' && value.match(/^\(\) *=>/)) {
+    return eval(value)();
+  } else {
+    return value;
+  }
+
+}
 
 module.exports.wrapper = function(handler) {
   let globalScope = {continuing: false, local: true}
@@ -14,7 +24,7 @@ module.exports.wrapper = function(handler) {
           done = !globalScope.local;
           globalScope.continuing = true;
           const serializedState = pako.inflate(e.state, {to: 'string'})
-          stack = JSON.parse(serializedState).stack
+          stack = parse(serializedState, reviver).stack
           if (!done) {
             console.log('Restarting with state for', Object.keys(stack).join(', '))
           }
@@ -35,19 +45,19 @@ module.exports.buildState = function(state, functionName, context) {
   if (state.globalScope.continuing) {
     return state
   } else {
-    return {globalScope: state.globalScope, stack: Object.assign({[functionName]: context}, state.stack)}
+    return {globalScope: state.globalScope, stack: Object.assign(state.stack, {[functionName]: context})}
   }
 }
 
 module.exports.checkpoint = function() {
   const state = module.exports.getState(arguments)
-  const serializedState = JSON.stringify(state);
-  const compressedState = pako.deflate(serializedState, {to: 'string'})
   if (state.globalScope.continuing) {
     console.log('checkpoint', arguments[0], 'continuing...')
     state.globalScope.continuing = false;
   } else {
-    console.log('checkpoint', arguments[0], 'reached')
+    const serializedState = stringify(state);
+    const compressedState = pako.deflate(serializedState, {to: 'string'})
+    console.log('checkpoint', arguments[0], 'reached - state size:', serializedState.length, 'compressed size:', compressedState.length)
     throw {type: 'checkpoint', state: compressedState}
   }
 }
@@ -58,7 +68,6 @@ module.exports.getState = function (args) {
   return state
 }
 
-// TODO it's more complicated.  Can't save/restore functions
 module.exports.restoreState = function(context, contextName, functionName, state) {
   console.log('restoring state for', functionName)
   context.next = state.stack[functionName][contextName].prev;

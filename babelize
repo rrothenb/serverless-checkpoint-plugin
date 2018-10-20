@@ -1,2 +1,4 @@
-babel --presets env contactSync.js -o contactSync.preprocess.js --source-maps inline
-babel --plugins ./checkpoint.plugin.js contactSync.preprocess.js -o contactSync_babelized.js --source-maps inline
+babel --presets env contactSync.js -o contactSync.preprocess.js
+babel --plugins ./checkpoint.plugin.js contactSync.preprocess.js -o contactSync_babelized.js
+#babel --presets env contactSync.js -o contactSync.preprocess.js --source-maps inline
+#babel --plugins ./checkpoint.plugin.js contactSync.preprocess.js -o contactSync_babelized.js --source-maps inline

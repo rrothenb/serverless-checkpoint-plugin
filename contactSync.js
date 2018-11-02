@@ -17,7 +17,7 @@ async function eventHandler() {
   $checkpoint('eventReceived');
   for (let i = 0; i < trigger.events.length; i++) {
     let event = trigger.events[i];
-    const myContact = await config.sfdc.getMyContactById(event.objectId).run();
+    const myContact = await config.source.getMyContactById(event.objectId).run();
     if (myContact.Email) {
       await syncContact(myContact, config, trigger.events.length);
     }

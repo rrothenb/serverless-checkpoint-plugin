@@ -77,7 +77,7 @@ var eventHandler = function () {
 
             event = trigger.events[i];
             _context2.next = 7;
-            return config.sfdc.getMyContactById(event.objectId).run();
+            return config.source.getMyContactById(event.objectId).run();
 
           case 7:
             myContact = _context2.sent;

@@ -43,7 +43,7 @@ var syncContact = function () {
             }
 
             _context.next = 7;
-            return config.dest.updateObjectNameByObjectId('myContact', foundContacts[0].Id, myContact).run();
+            return config.dest.replaceObjectNameByObjectId('myContact', foundContacts[0].Id, myContact).run();
 
           case 7:
             console.log(foundContacts[0].Id + ' updated');
@@ -123,7 +123,7 @@ var eventHandler = function () {
 
             event = trigger.events[i];
             _context2.next = 7;
-            return config.sfdc.getMyContactById(event.objectId).run();
+            return config.source.getMyContactById(event.objectId).run();
 
           case 7:
             myContact = _context2.sent;

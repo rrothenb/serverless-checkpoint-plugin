@@ -2,12 +2,17 @@ const pako = require('pako');
 const {parse, stringify} = require('flatted/cjs');
 
 function reviver(key, value) {
-  if (typeof value === 'string' && value.match(/^\(\) *=>/)) {
-    return eval(value)();
-  } else {
-    return value;
+  if (value && value.checkpointedClassName && value.checkpointedRepresentation && revivers[value.checkpointedClassName]) {
+    return revivers[value.checkpointedClassName](JSON.parse(value.checkpointedRepresentation))
   }
+  return value
+}
 
+function replacer(key, value) {
+  if (value && value.constructor && revivers[value.constructor.name]) {
+    return {checkpointedClassName: value.constructor.name, checkpointedRepresentation: JSON.stringify(value)}
+  }
+  return value
 }
 
 module.exports.wrapper = function(handler) {
@@ -27,6 +32,7 @@ module.exports.wrapper = function(handler) {
           stack = parse(serializedState, reviver).stack
           if (!done) {
             console.log('Restarting with state for', Object.keys(stack).join(', '))
+            console.log('state size:', serializedState.length, 'compressed size:', e.state.length)
           }
         } else {
           console.log('caught', e)
@@ -55,7 +61,7 @@ module.exports.checkpoint = function() {
     console.log('checkpoint', arguments[0], 'continuing...')
     state.globalScope.continuing = false;
   } else {
-    const serializedState = stringify(state);
+    const serializedState = stringify(state, replacer);
     const compressedState = pako.deflate(serializedState, {to: 'string'})
     console.log('checkpoint', arguments[0], 'reached - state size:', serializedState.length, 'compressed size:', compressedState.length)
     throw {type: 'checkpoint', state: compressedState}
@@ -75,4 +81,10 @@ module.exports.restoreState = function(context, contextName, functionName, state
   context.sent = state.stack[functionName][contextName].sent;
   state.stack[functionName][contextName] = context;
   return state.stack[functionName];
+}
+
+const revivers = {}
+
+module.exports.register = function(classDef, reviver) {
+  revivers[classDef.name] = reviver
 }

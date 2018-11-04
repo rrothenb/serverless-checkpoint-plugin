@@ -1,3 +1,7 @@
+require("regenerator-runtime/runtime");
+
+const AWS = require('aws-sdk')
+
 const pako = require('pako');
 const {parse, stringify} = require('flatted/cjs');
 
@@ -16,11 +20,18 @@ function replacer(key, value) {
 }
 
 module.exports.wrapper = function(handler) {
-  console.log('Starting at', `${new Date()}`)
   let globalScope = {continuing: false, local: true}
-  return async function () {
+  return async function (event, context, callback) {
+    console.log('Starting at', `${new Date()}`)
     let done = false;
     let stack = {}
+    if (event.Records && event.Records.length === 1 && event.Records[0].eventSource === 'aws:sqs') {
+      globalScope.continuing = true;
+      const compressedStack = Buffer.from(event.Records[0].body, 'base64').toString('utf-8')
+      const serializedState = pako.inflate(compressedStack, {to: 'string'})
+      stack = parse(serializedState, reviver).stack
+      console.log('Restarting with state for', Object.keys(stack).join(', '))
+    }
     while (!done) {
       try {
         const response = await handler(...arguments, {globalScope, stack: stack})
@@ -28,11 +39,22 @@ module.exports.wrapper = function(handler) {
         return response
       } catch (e) {
         if (e.type === 'checkpoint') {
-          done = !globalScope.local;
-          globalScope.continuing = true;
-          const serializedState = pako.inflate(e.state, {to: 'string'})
-          stack = parse(serializedState, reviver).stack
-          if (!done) {
+          if (context.invokedFunctionArn) {
+            const region = context.invokedFunctionArn.split(':')[3]
+            const account = context.invokedFunctionArn.split(':')[4]
+            const sqs = new AWS.SQS({region})
+            const queueUrl = `https://sqs.${region}.amazonaws.com/${account}/queue`
+            return sqs.sendMessage(
+              {
+                MessageBody: Buffer.from(e.state).toString('base64'),
+                QueueUrl: queueUrl
+              }).promise().then(r => {
+              callback(null, {statusCode: 202, body: 'checkpoint!'})
+            })
+          } else {
+            globalScope.continuing = true;
+            const serializedState = pako.inflate(e.state, {to: 'string'})
+            stack = parse(serializedState, reviver).stack
             console.log('Restarting with state for', Object.keys(stack).join(', '))
           }
         } else {
@@ -86,7 +108,7 @@ module.exports.checkpoint = function() {
     }
     const serializedState = stringify(state, replacer);
     const compressedState = pako.deflate(serializedState, {to: 'string'})
-    console.debug('state size:', serializedState.length, 'compressed size:', compressedState.length)
+    console.log('state size:', serializedState.length, 'compressed size:', compressedState.length)
     throw {type: 'checkpoint', state: compressedState}
   }
 }

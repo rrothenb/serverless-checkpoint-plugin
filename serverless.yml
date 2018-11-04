@@ -3,6 +3,11 @@ service: salesforce-finance-contact-sync
 provider:
   name: aws
   runtime: nodejs8.10
+  iamRoleStatements:
+  - Effect: Allow
+    Action:
+      - sqs:sendMessage
+    Resource: arn:aws:sqs:*:*:queue
 
 plugins:
   - serverless-cloud-elements-plugin
@@ -15,6 +20,11 @@ functions:
     events:
       - instance:
           resource: source
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - queue
+              - Arn
 
 resources:
   Resources:
@@ -32,3 +42,8 @@ resources:
         userToken: ${env:USER_TOKEN}
         orgToken: ${env:ORG_TOKEN}
         baseUrl: ${env:BASE_URL}
+    queue:
+      Type: "AWS::SQS::Queue"
+      Properties:
+        QueueName: "queue"
+
